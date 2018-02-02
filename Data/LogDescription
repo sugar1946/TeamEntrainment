@@ -1,0 +1,26 @@
+Log and description
+
+Convergence_acoustic_Weighted_nonWeighted1_4intervals.csv:
+    1/23/2018 from Zahra
+    Record the 1 quater and 4th quater interval convergence (weighted and nonweighted)
+
+weighted convergence analysis 2:
+   1/23/2018 from Zahra
+   Using the weighted convergence to predict the ???. She tried different models here such as svc rbf/sigmoid, random forest. logistic regression. She also created fake game and use the convergence from the fake game to predict the ??? and compare the predicting result with real game.
+
+EntrainmentNew-correlations-2018-01-15:
+   1/23/2018 from Susannah
+   Using 1vs4th interval convergence to see the correlations betweeen the strategy and convergence.
+
+Team_Study_TeamLevel-2018-01-14:
+   1/23/2018 copy from Susannah
+   Big data file containing: 
+       Diveristy measure - Age, Gender, ethnic, educationLevel, occupation
+       Convergence measure acoustic&prosodic - G1 & G2, interval 1vs2, interval 1vs4 (weighted/unweighted), first 3&7 minutes
+       Strategy - Advice taking/suggesting, Action choice
+       Conflict/Success: SMM, AVGcohesion
+
+    1/23/2018 Mingzhi modified 
+    Add proximity using LIWC_64_catogory  
+
+
