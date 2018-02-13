@@ -14,13 +14,19 @@ import glob, sys
 import pandas as pd
 import pickle
 from subprocess import call
+import argparse
+
+CONFIG_PATH = '../config/'
+
+OUTPUT_PATH = '../output/'
 
 # Corpus: files are all the .txt in the corpus for each team
-FILES = glob.glob('../Standardized/*.txt')
+FILES = glob.glob('../../Corpus/Standardized/*.txt')
 
 # Breakpoints are used in the convergence
-BREAKPOINTS = pd.read_csv(
-            '../breakingpoints_2intervals_v2.csv', index_col=0)
+#BREAKPOINTS = pd.read_csv(
+#            '../config/breakingpoints_2intervals_v2.csv', index_col=0)
+
 
 # Ignored the text features
 IGNORED_CATEGORY = ["Word Count", "Unique Words", "Other Punctuation", "All Punctuation", "Words Per Sentence", "Dictionary Words",
@@ -84,6 +90,7 @@ class LIWC_perTeam(object):
                 self.spk_allUtterance_text[u[0]] = ''
 
 
+
     # this fun will return the LIWC score for each of the spk of each team
     # this fun will be used in the iterative loop for each team
     # input : a speakers utterances dictionary from a team : {spk:string,spk2:string}
@@ -104,7 +111,7 @@ class LIWC_perTeam(object):
                 except KeyError:
                     print "Key" + category + " does not exist"
 
-            # Adding #total to fit the entraiment caculation codes later run by LIWC_entrainment
+            # Adding #total to fit the entrainment caculation codes later run by LIWC_entrainment
             # #total is a dummy value which is 1
 
 
@@ -115,7 +122,7 @@ class LIWC_perTeam(object):
 
                 # print scores
 
-            if self.n_category == '8':
+            elif self.n_category == '8':
                 for c in CATEGORY_8:
                     if c not in scores:
                         scores[c] = 0
@@ -146,7 +153,7 @@ class LIWC_perTeam(object):
             for i in BREAKPOINTS.columns:
                 start = end
                 end = BREAKPOINTS.loc[int(self.team_num), i] + 1
-                self.processed_lines_byIntervals.append(self.processed_lines[start:end])
+                self.processed_lines_intervals.append(self.processed_lines[start:end])
 
         self.file.close()
 
@@ -165,7 +172,7 @@ class LIWC_perTeam(object):
 
 # This is the main function that iterates every file and
 # calculate the LIWC score
-def set_featurefile_single(n_category, intervals = 0):
+def set_featurefile_single(n_category, intervals = 0, method ='None'):
 
     print "========================Corpus file list==================="
     print FILES
@@ -179,7 +186,7 @@ def set_featurefile_single(n_category, intervals = 0):
         team_num = file[file.find('Team') + 4: file.find('Team') + 8]
         game_num = file[file.find('Game'):file.find('Game') + 5]
 
-        print "============Reading Team " + str(game_num) + "========"
+        print "============Reading Team " + str(team_num) + "========"
         input_file = open(file, 'r')
         print input_file
 
@@ -198,7 +205,7 @@ def set_featurefile_single(n_category, intervals = 0):
             liwc_perTeam.allUtterance_bySpeaker(processed_lines)
             liwc_perTeam.LIWC_score_bySpeaker()
 
-            print "=================Finish building liwc_perTeam============="
+            print "*******Finish building liwc_perTeam for interval "+str(i)+"******"
             print liwc_perTeam.LIWC_score_spk
 
             for player in range(liwc_perTeam.n_size):
@@ -217,10 +224,39 @@ def set_featurefile_single(n_category, intervals = 0):
     print "==============scoreLIWC_allPlayers_corpus==============="
     print scoreLIWC_allPlayers_corpus
     df = pd.DataFrame.from_dict(scoreLIWC_allPlayers_corpus, orient='index')
-    df.to_csv("LIWC_"+str(n_category) + "_category.csv")
+    df.to_csv(OUTPUT_PATH+"LIWC_"+str(n_category) + "_category_"+method+"_"+str(intervals)+".csv")
 
 
 if __name__ == '__main__':
 
-    set_featurefile_single(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('n', action='store',
+                        help='the set of category')
+    parser.add_argument('-c', action='store',dest='bp',
+                        help='calculate the convergence')
+
+    parser.add_argument('-p', action='store_true',
+                        help='calcualte the proximity')
+
+
+    args = parser.parse_args()
+
+    print args
+    if args.p:
+        print "======Calculate the proximity======"
+        set_featurefile_single(args.n,method='proximity')
+    elif args.bp:
+        print "======Calculate the convergence======"
+        global BREAKPOINTS
+        BREAKPOINTS = pd.read_csv(CONFIG_PATH+args.bp,index_col=0)
+
+        n_intervals = len(BREAKPOINTS.columns)-1
+        print "=======INTERVALS " + str(len(BREAKPOINTS.columns)) + "========="
+
+        set_featurefile_single(args.n, intervals=n_intervals, method='convergency')
+
+    else:
+        print "Invalid input"
+
+    #set_featurefile_single(sys.argv[1])
 

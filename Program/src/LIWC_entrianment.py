@@ -6,7 +6,8 @@ group LIWC entrainment
 import pandas as pd
 import Entrainment as ent
 
-
+OUTPUT_PATH = '../output/'
+import argparse
 
 def read_word_file(filePath):
     word_game_dic = []
@@ -275,15 +276,15 @@ def convergence_sum_words(featureDF, words_per_team, method_name, per_team):
     return convergence_diff_df, convergence_value_df
 
 
-featureDF_proximity = read_aggregate_frequency_file(
-    'LIWC_8_category.csv')
-words_per_team = read_words(
-    'CategoryList_8',
-    pergame=False)
+# featureDF_proximity = read_aggregate_frequency_file(
+#     'LIWC_8_category.csv')
+# words_per_team = read_words(
+#     'CategoryList_8',
+#     pergame=False)
 
-proximity_diff_df, proximity_value_df = proximity_sum_words(featureDF_proximity, words_per_team, 'LIWC_64_category', intervals= False, per_team = False)
-proximity_diff_df.to_csv('proximity_LIWC_8_category_diff.csv')
-proximity_value_df.to_csv('proximity_LIWC_8_category_value.csv')
+# proximity_diff_df, proximity_value_df = proximity_sum_words(featureDF_proximity, words_per_team, 'LIWC_64_category', intervals= False, per_team = False)
+# proximity_diff_df.to_csv('proximity_LIWC_8_category_diff.csv')
+# proximity_value_df.to_csv('proximity_LIWC_8_category_value.csv')
 
 # -----Mingzhi: Commen out if you want to calculate the proximity by gender----#
 # proximity_diff_df_gender = proximity_sum_words_Gender(featureDF_proximity, words_per_team, 'LIWC_Top25Words_corpus_Highest_funct',intervals= False , per_team = False)
@@ -296,4 +297,37 @@ proximity_value_df.to_csv('proximity_LIWC_8_category_value.csv')
 # convergence_diff_df.to_csv('convergenceDiff_LIWC_Top25Words_corpus_Highest_funct_2intervals.csv')
 # convergence_value_df.to_csv('convergence_LIWC_LIWC_Top25Words_corpus_Highest_funct_2intervals.csv')
 #
-#
+
+if __name__ == '__main__':
+
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('p', action='store_true',
+                        help='calculate the proximity based on the csv score')
+    parser.add_argument('c', action='store_true',
+                        help='calculate the convergence based on the csv score')
+    parser.add_argument('--word', '-w', action='store', dest='word_List',
+                        help='The category set')
+    parser.add_argument('--score', '-s', action='store', dest='score',
+                        help='The score file')
+    parser.add_argument('--method', '-m', action='store',dext='method', help='the method name that will be displayed')
+
+    args = parser.parse_args()
+
+    featureDF = read_aggregate_frequency_file(
+        args.score)
+    words_per_team = read_words(
+       args.word_List, pergame=False)
+
+    if args.p:
+
+        proximity_diff_df, proximity_value_df = proximity_sum_words(featureDF, words_per_team,
+                                                                    args.method, intervals=False, per_team=False)
+        proximity_diff_df.to_csv('proximity_'+args.method+'_diff.csv')
+        proximity_value_df.to_csv('proximity_'+args.method+'_value.csv')
+
+    elif args.c:
+        convergence_diff_df, convergence_value_df = convergence_sum_words(featureDF, words_per_team, args.method,\
+                                                                          per_team=False)
+        convergence_diff_df.to_csv('convergence_'+args.method+'_diff.csv')
+        convergence_value_df.to_csv('convergence_'+args.method+'_value.csv')
